@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>For You 🌸</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Lora:ital,wght@0,400;1,400;1,600&display=swap" rel="stylesheet"/>
+<style>
+/* ─── RESET ─────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+/* ─── TOKENS ─────────────────────────────────── */
+:root{
+  --blush:    #f9e4e4;
+  --rose:     #e8a0a0;
+  --dusty:    #c97b7b;
+  --petal:    #fdf0f0;
+  --sage:     #b5c4b1;
+  --gold:     #c9954a;
+  --gold-lt:  #f0d090;
+  --ink:      #3d2020;
+  --mist:     #f5eded;
+  --white:    #fffcfc;
+}
+
+/* ─── BASE ─────────────────────────────────── */
+html,body{
+  height:100%;
+  font-family:'Lora',Georgia,serif;
+  background:var(--petal);
+  color:var(--ink);
+  overflow:hidden;
+  user-select:none;
+  -webkit-tap-highlight-color:transparent;
+}
+
+/* ─── ANIMATED WATERCOLOUR BACKGROUND ───────── */
+body::before{
+  content:'';
+  position:fixed;inset:0;
+  background:
+    radial-gradient(ellipse 80% 60% at 15% 20%, #fadadaaa 0%, transparent 65%),
+    radial-gradient(ellipse 60% 80% at 85% 80%, #f9e4e4cc 0%, transparent 60%),
+    radial-gradient(ellipse 50% 50% at 50% 50%, #fff8f8 0%, #fde8e8 100%);
+  animation: bgshift 12s ease-in-out infinite alternate;
+  z-index:0;
+}
+@keyframes bgshift{
+  0%  {filter:hue-rotate(0deg) brightness(1)}
+  100%{filter:hue-rotate(8deg) brightness(1.04)}
+}
+
+/* ─── FLOATING PETALS ──────────────────────── */
+.petal-layer{position:fixed;inset:0;pointer-events:none;z-index:1}
+.fp{
+  position:absolute;
+  top:-40px;
+  font-size:1rem;
+  opacity:0;
+  animation:fallin var(--fd,6s) ease-in var(--fdelay,0s) infinite;
+}
+@keyframes fallin{
+  0%  {opacity:0;transform:translateY(0) translateX(0) rotate(0deg) scale(.8)}
+  10% {opacity:.9}
+  90% {opacity:.6}
+  100%{opacity:0;transform:translateY(105vh) translateX(var(--fdrift,30px)) rotate(360deg) scale(1.1)}
+}
+
+/* ─── SCENE WRAPPER ────────────────────────── */
+#scene{
+  position:relative;z-index:10;
+  width:100vw;height:100vh;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  gap:1.8rem;
+  transition:opacity .8s ease, transform .8s ease;
+}
+
+/* ─── SUBTITLE / MESSAGE ───────────────────── */
+#subtitle{
+  font-family:'Playfair Display',serif;
+  font-style:italic;
+  font-size:clamp(.95rem,2.5vw,1.2rem);
+  color:var(--dusty);
+  letter-spacing:.04em;
+  min-height:1.8rem;
+  text-align:center;
+  opacity:0;
+  transform:translateY(8px);
+  transition:opacity .6s ease, transform .6s ease;
+  text-shadow:0 2px 12px rgba(200,100,100,.18);
+}
+#subtitle.show{opacity:1;transform:translateY(0)}
+
+/* ─── HINT ─────────────────────────────────── */
+#hint{
+  font-size:.72rem;
+  letter-spacing:.28em;
+  text-transform:uppercase;
+  color:var(--rose);
+  animation:breathe 2.4s ease-in-out infinite;
+  font-family:'Lora',serif;
+  min-height:1.1rem;
+}
+@keyframes breathe{0%,100%{opacity:.4}50%{opacity:1}}
+
+/* ─── BOX WRAPPER ──────────────────────────── */
+#box-wrap{
+  position:relative;
+  cursor:pointer;
+  transition:transform .12s ease;
+}
+#box-wrap:active{transform:scale(.95)}
+
+/* ─── SVG LID: slides upward on open ──────── */
+#lid-g{
+  transition:transform .7s cubic-bezier(.34,1.3,.64,1), opacity .4s ease;
+}
+#lid-g.open1{transform:translateY(-28px) rotate(-4deg)}
+#lid-g.open2{transform:translateY(-65px) rotate(-9deg)}
+#lid-g.open3{transform:translateY(-180px) rotate(-14deg);opacity:0}
+
+/* ring glow pulse */
+#ring-g{
+  opacity:0;
+  transition:opacity .7s ease .35s;
+}
+#ring-g.show{opacity:1}
+#ring-g.show .rband{
+  animation:rglow 2s ease-in-out infinite;
+}
+@keyframes rglow{
+  0%,100%{filter:drop-shadow(0 0 4px rgba(201,149,74,.5))}
+  50%     {filter:drop-shadow(0 0 14px rgba(240,208,144,.9)) drop-shadow(0 0 28px rgba(201,149,74,.5))}
+}
+
+/* diamond shimmer */
+.dshine{animation:dsh 3s ease-in-out infinite}
+@keyframes dsh{
+  0%,100%{opacity:.7} 50%{opacity:1}
+}
+
+/* tap ripple */
+.ripple{
+  position:absolute;
+  border-radius:50%;
+  border:2px solid var(--rose);
+  width:20px;height:20px;
+  top:50%;left:50%;
+  transform:translate(-50%,-50%) scale(0);
+  opacity:.8;
+  animation:ripout .6s ease-out forwards;
+  pointer-events:none;
+}
+@keyframes ripout{
+  to{transform:translate(-50%,-50%) scale(8);opacity:0}
+}
+
+/* ─── LETTER SCENE ─────────────────────────── */
+#letter-scene{
+  display:none;
+  position:fixed;inset:0;z-index:20;
+  align-items:center;justify-content:center;
+  background:linear-gradient(135deg,#fff5f5 0%,#fde0e0 50%,#faf0ee 100%);
+  overflow-y:auto;
+  padding:2rem 1rem;
+}
+#letter-scene.show{
+  display:flex;
+  animation:sceneIn 1s cubic-bezier(.22,1,.36,1) forwards;
+}
+@keyframes sceneIn{
+  from{opacity:0;transform:scale(.94)}
+  to  {opacity:1;transform:scale(1)}
+}
+
+/* watercolour blobs behind letter */
+#letter-scene::before{
+  content:'';
+  position:fixed;inset:0;
+  background:
+    radial-gradient(ellipse 70% 50% at 10% 10%, #fadadaaa 0%,transparent 55%),
+    radial-gradient(ellipse 60% 60% at 90% 90%, #f9cdcd99 0%,transparent 55%),
+    radial-gradient(ellipse 80% 40% at 50% 60%, #fdeaea88 0%,transparent 60%);
+  pointer-events:none;
+  z-index:0;
+}
+
+/* envelope / letter card */
+.env-wrap{
+  position:relative;z-index:1;
+  display:flex;flex-direction:column;
+  align-items:center;
+  max-width:480px;width:100%;
+}
+
+/* envelope flap (decorative top) */
+.env-flap{
+  width:340px;
+  height:0;
+  border-left: 170px solid transparent;
+  border-right:170px solid transparent;
+  border-bottom:90px solid #f2c8c8;
+  filter:drop-shadow(0 -2px 8px rgba(200,100,100,.15));
+  position:relative;
+  z-index:2;
+}
+.env-flap::after{
+  content:'❤';
+  position:absolute;
+  top:30px;left:-14px;
+  font-size:1.3rem;
+  color:#e07070;
+  opacity:.7;
+}
+
+/* letter paper */
+#letter-paper{
+  width:340px;
+  background:var(--white);
+  padding:2.6rem 2.4rem 2.8rem;
+  position:relative;
+  box-shadow:0 12px 60px rgba(180,80,80,.18),0 2px 8px rgba(180,80,80,.1);
+  border:1px solid rgba(200,140,140,.2);
+  border-top:none;
+  z-index:1;
+}
+
+/* ruled lines */
+#letter-paper::before{
+  content:'';
+  position:absolute;inset:0;
+  background:repeating-linear-gradient(
+    transparent,transparent 29px,
+    rgba(200,150,150,.12) 30px
+  );
+  pointer-events:none;
+}
+
+/* left red margin line */
+#letter-paper::after{
+  content:'';
+  position:absolute;
+  top:0;bottom:0;left:52px;
+  width:1px;
+  background:rgba(220,160,160,.3);
+}
+
+.letter-inner{position:relative;z-index:1}
+
+.poem-header{
+  font-family:'Playfair Display',serif;
+  font-size:.68rem;
+  letter-spacing:.3em;
+  text-transform:uppercase;
+  color:var(--rose);
+  text-align:center;
+  margin-bottom:1.6rem;
+}
+
+.drop-cap{
+  float:left;
+  font-family:'Playfair Display',serif;
+  font-size:4.4rem;
+  line-height:.72;
+  color:var(--dusty);
+  margin-right:.08em;
+  padding-top:.05em;
+}
+
+.poem-body{
+  font-family:'Lora',serif;
+  font-style:italic;
+  font-size:.95rem;
+  line-height:2;
+  color:var(--ink);
+}
+
+.poem-break{display:block;height:.6rem}
+
+.question{
+  display:block;
+  clear:both;
+  text-align:center;
+  margin-top:2rem;
+  font-family:'Playfair Display',serif;
+  font-size:1.6rem;
+  font-style:italic;
+  color:var(--dusty);
+  animation:qpulse 2.2s ease-in-out infinite;
+  line-height:1.4;
+}
+@keyframes qpulse{
+  0%,100%{color:var(--dusty); text-shadow:none}
+  50%    {color:#c05050; text-shadow:0 0 20px rgba(200,100,100,.4)}
+}
+
+.heart-sig{
+  display:block;
+  text-align:center;
+  margin-top:1.2rem;
+  font-size:1.8rem;
+  animation:hbeat 1.3s ease-in-out infinite;
+}
+@keyframes hbeat{
+  0%,100%{transform:scale(1)}
+  15%    {transform:scale(1.25)}
+  30%    {transform:scale(1)}
+  45%    {transform:scale(1.1)}
+}
+
+/* falling petals on letter scene */
+.scene-petal{
+  position:fixed;
+  top:-30px;
+  font-size:1rem;
+  pointer-events:none;
+  animation:fallin2 var(--fd) ease-in var(--fdelay) forwards;
+  z-index:3;
+}
+@keyframes fallin2{
+  0%  {opacity:0;transform:translateY(0) rotate(0deg)}
+  8%  {opacity:1}
+  100%{opacity:0;transform:translateY(110vh) translateX(var(--fdrift)) rotate(400deg)}
+}
+
+/* ─── SPARKLE BURST ────────────────────────── */
+.spark{
+  position:absolute;
+  width:5px;height:5px;
+  border-radius:50%;
+  background:var(--gold-lt);
+  animation:sparkfly .7s ease-out forwards;
+  pointer-events:none;
+}
+@keyframes sparkfly{
+  0%  {opacity:1;transform:translate(0,0) scale(1)}
+  100%{opacity:0;transform:translate(var(--sx),var(--sy)) scale(0)}
+}
+
+/* ─── RESPONSIVE ─────────────────────────── */
+@media(max-width:400px){
+  #letter-paper{width:96vw;padding:2rem 1.4rem 2.2rem}
+  .env-flap{width:96vw;border-left-width:48vw;border-right-width:48vw}
+}
+</style>
+</head>
+<body>
+
+<!-- ambient petals -->
+<div class="petal-layer" id="ambient-petals"></div>
+
+<!-- ══════════ BOX SCENE ══════════ -->
+<div id="scene">
+  <div id="subtitle"></div>
+
+  <div id="box-wrap" onclick="tapBox(this)">
+    <svg id="box-svg" width="200" height="210" viewBox="0 0 200 210" style="overflow:visible">
+      <defs>
+        <!-- box body gradients -->
+        <linearGradient id="bg1" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#f0c8c8"/>
+          <stop offset="100%" stop-color="#d98888"/>
+        </linearGradient>
+        <linearGradient id="bg2" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="#e8b0b0"/>
+          <stop offset="100%" stop-color="#c87070"/>
+        </linearGradient>
+        <!-- lid gradient -->
+        <linearGradient id="lg1" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#f8d8d8"/>
+          <stop offset="100%" stop-color="#e09898"/>
+        </linearGradient>
+        <!-- ribbon -->
+        <linearGradient id="rib" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#f0d0a0"/>
+          <stop offset="100%" stop-color="#c8943a"/>
+        </linearGradient>
+        <!-- velvet inside -->
+        <radialGradient id="vel" cx="50%" cy="40%" r="65%">
+          <stop offset="0%" stop-color="#f5e0e0"/>
+          <stop offset="100%" stop-color="#e0b0b0"/>
+        </radialGradient>
+        <!-- gold ring band -->
+        <linearGradient id="rband" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#f8e070"/>
+          <stop offset="40%" stop-color="#c9954a"/>
+          <stop offset="100%" stop-color="#9a6520"/>
+        </linearGradient>
+        <!-- diamond -->
+        <radialGradient id="diam" cx="35%" cy="25%" r="70%">
+          <stop offset="0%" stop-color="#ffffff"/>
+          <stop offset="55%" stop-color="#d8eeff"/>
+          <stop offset="100%" stop-color="#a0c0f0"/>
+        </radialGradient>
+        <!-- box shadow filter -->
+        <filter id="bshadow" x="-10%" y="-5%" width="120%" height="130%">
+          <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#d06060" flood-opacity=".22"/>
+        </filter>
+        <filter id="glow2" x="-30%" y="-30%" width="160%" height="160%">
+          <feGaussianBlur stdDeviation="3" result="b"/>
+          <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+      </defs>
+
+      <!-- ── BOX BODY ── -->
+      <g filter="url(#bshadow)">
+        <!-- main face -->
+        <rect x="20" y="120" width="160" height="80" rx="6" fill="url(#bg1)"/>
+        <!-- side shading -->
+        <rect x="20" y="120" width="10" height="80" rx="3" fill="url(#bg2)" opacity=".5"/>
+        <rect x="170" y="120" width="10" height="80" rx="3" fill="url(#bg2)" opacity=".4"/>
+        <!-- bottom shading -->
+        <rect x="20" y="190" width="160" height="10" rx="3" fill="#c07070" opacity=".4"/>
+
+        <!-- velvet interior (visible when open) -->
+        <rect x="28" y="123" width="144" height="74" rx="4" fill="url(#vel)"/>
+        <!-- cushion bump -->
+        <ellipse cx="100" cy="164" rx="55" ry="18" fill="#f2c8c8" opacity=".7"/>
+        <ellipse cx="100" cy="159" rx="45" ry="13" fill="#f8d8d8" opacity=".5"/>
+
+        <!-- vertical ribbon stripe on box body -->
+        <rect x="91" y="120" width="18" height="80" fill="url(#rib)" opacity=".85"/>
+        <!-- horizontal ribbon stripe -->
+        <rect x="20" y="152" width="160" height="14" fill="url(#rib)" opacity=".85"/>
+
+        <!-- ribbon bow at intersection -->
+        <!-- left loop -->
+        <ellipse cx="78" cy="159" rx="20" ry="11" fill="url(#rib)" transform="rotate(-15,78,159)"/>
+        <ellipse cx="78" cy="159" rx="12" ry="6" fill="#f0d0a0" opacity=".4" transform="rotate(-15,78,159)"/>
+        <!-- right loop -->
+        <ellipse cx="122" cy="159" rx="20" ry="11" fill="url(#rib)" transform="rotate(15,122,159)"/>
+        <ellipse cx="122" cy="159" rx="12" ry="6" fill="#f0d0a0" opacity=".4" transform="rotate(15,122,159)"/>
+        <!-- knot -->
+        <ellipse cx="100" cy="159" rx="9" ry="9" fill="#c9954a"/>
+        <ellipse cx="100" cy="159" rx="5" ry="5" fill="#f0d090"/>
+        <!-- ribbon tails -->
+        <path d="M95 168 Q88 185 80 195" stroke="url(#rib)" stroke-width="7" fill="none" stroke-linecap="round"/>
+        <path d="M105 168 Q112 185 120 195" stroke="url(#rib)" stroke-width="7" fill="none" stroke-linecap="round"/>
+      </g>
+
+      <!-- ── RING (shown after tap 3) ── -->
+      <g id="ring-g">
+        <g filter="url(#glow2)">
+          <!-- band -->
+          <ellipse class="rband" cx="100" cy="157" rx="22" ry="9" fill="none" stroke="url(#rband)" stroke-width="9"/>
+          <ellipse cx="100" cy="157" rx="22" ry="9" fill="none" stroke="#f9ea98" stroke-width="2" opacity=".6"/>
+          <!-- diamond -->
+          <polygon class="dshine" points="100,130 114,146 100,153 86,146" fill="url(#diam)"/>
+          <polygon points="100,130 114,146 100,143" fill="#c8e4ff" opacity=".9"/>
+          <polygon points="100,130 86,146 100,143"  fill="#a8ccff" opacity=".9"/>
+          <polygon points="86,146 100,153 100,143"  fill="#88b4ee" opacity=".75"/>
+          <polygon points="114,146 100,153 100,143" fill="#cce0ff" opacity=".75"/>
+          <!-- sparkle dots on diamond -->
+          <circle cx="105" cy="133" r="2"   fill="white" opacity=".95"/>
+          <circle cx="97"  cy="131" r="1.3" fill="white" opacity=".8"/>
+          <circle cx="109" cy="139" r="1"   fill="white" opacity=".7"/>
+        </g>
+      </g>
+
+      <!-- ── LID (slides up and fades on tap 3) ── -->
+      <g id="lid-g">
+        <!-- lid body -->
+        <rect x="16" y="72" width="168" height="52" rx="7" fill="url(#lg1)" stroke="#e8a0a0" stroke-width="1"/>
+        <!-- lid shading -->
+        <rect x="16" y="72" width="168" height="8" rx="4" fill="#f8e0e0"/>
+        <rect x="16" y="116" width="168" height="8" rx="4" fill="#c88080" opacity=".5"/>
+        <!-- lid left/right edge shadow -->
+        <rect x="16" y="72" width="8" height="52" rx="3" fill="#e09090" opacity=".4"/>
+        <rect x="176" y="72" width="8" height="52" rx="3" fill="#e09090" opacity=".3"/>
+        <!-- vertical ribbon on lid -->
+        <rect x="91" y="72" width="18" height="52" fill="url(#rib)" opacity=".85"/>
+        <!-- embossed heart on lid -->
+        <text x="100" y="104" text-anchor="middle" font-size="22" fill="#e8a0a0" opacity=".35" font-family="Georgia,serif">♥</text>
+        <!-- decorative top edge -->
+        <rect x="16" y="118" width="168" height="6" rx="3" fill="url(#rib)" opacity=".7"/>
+      </g>
+
+    </svg><!-- end box svg -->
+
+    <!-- tap ripple container -->
+    <div id="ripple-host" style="position:absolute;inset:0;pointer-events:none;overflow:hidden;border-radius:8px"></div>
+  </div><!-- end box-wrap -->
+
+  <div id="hint">tap the box</div>
+</div><!-- end scene -->
+
+<!-- ══════════ LETTER SCENE ══════════ -->
+<div id="letter-scene">
+  <div class="env-wrap">
+
+    <!-- envelope top flap -->
+    <div class="env-flap"></div>
+
+    <!-- letter paper -->
+    <div id="letter-paper">
+      <div class="letter-inner">
+        <div class="poem-header">— written just for you —</div>
+
+        <div class="poem-body">
+          <span class="drop-cap">I</span>
+          found forever in your laugh,<br/>
+          in quiet mornings, your soft gaze —<br/>
+          no map could chart what you have made<br/>
+          of all my ordinary days.<br/>
+          <span class="poem-break"></span>
+          You are the reason seasons glow,<br/>
+          the voice that turns a house to home.<br/>
+          Wherever life decides to go,<br/>
+          I never want to go alone.<br/>
+          <span class="poem-break"></span>
+          So here I am, on bended heart,<br/>
+          with every word I mean to say —<br/>
+          <em>will you be my greatest art,</em><br/>
+          <em>and choose me, love, from this day?</em>
+        </div>
+
+        <span class="question">Will you marry me? 💍</span>
+        <span class="heart-sig">❤️</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+<script>
+/* ─── AMBIENT PETALS ─────────────────────────── */
+(function(){
+  const layer = document.getElementById('ambient-petals');
+  const g = ['🌸','🌺','🌷','✿','❀'];
+  for(let i=0;i<18;i++){
+    const d = document.createElement('div');
+    d.className='fp';
+    d.textContent = g[Math.floor(Math.random()*g.length)];
+    d.style.cssText=`
+      left:${Math.random()*100}%;
+      --fd:${(Math.random()*6+5).toFixed(1)}s;
+      --fdelay:${(Math.random()*-10).toFixed(1)}s;
+      --fdrift:${(Math.random()*80-40).toFixed(0)}px;
+      font-size:${(Math.random()*.6+.7).toFixed(2)}rem;
+      opacity:0;
+    `;
+    layer.appendChild(d);
+  }
+})();
+
+/* ─── BOX STATE ──────────────────────────────── */
+let taps = 0;
+const MSGS = [
+  "Something's waiting inside… 🌸",
+  "A little more… keep going 💛",
+  "Open it…"
+];
+
+const lidG    = document.getElementById('lid-g');
+const ringG   = document.getElementById('ring-g');
+const subtitle= document.getElementById('subtitle');
+const hint    = document.getElementById('hint');
+
+function showMsg(txt){
+  subtitle.classList.remove('show');
+  setTimeout(()=>{ subtitle.textContent=txt; subtitle.classList.add('show'); },100);
+}
+
+function spawnRipple(wrap){
+  const r=document.createElement('div');
+  r.className='ripple';
+  document.getElementById('ripple-host').appendChild(r);
+  r.addEventListener('animationend',()=>r.remove());
+}
+
+function spawnSparks(wrap){
+  for(let i=0;i<16;i++){
+    const s=document.createElement('div');
+    s.className='spark';
+    const angle=(i/16)*360;
+    const dist=40+Math.random()*60;
+    s.style.cssText=`
+      left:50%;top:50%;
+      --sx:${(Math.cos(angle*Math.PI/180)*dist).toFixed(0)}px;
+      --sy:${(Math.sin(angle*Math.PI/180)*dist).toFixed(0)}px;
+    `;
+    wrap.appendChild(s);
+    s.addEventListener('animationend',()=>s.remove());
+  }
+}
+
+function tapBox(wrap){
+  if(taps>=3){goToLetter();return;}
+  taps++;
+  spawnRipple(wrap);
+
+  if(taps===1){
+    lidG.classList.add('open1');
+    showMsg(MSGS[0]);
+    hint.textContent='tap again…';
+  } else if(taps===2){
+    lidG.classList.remove('open1');
+    lidG.classList.add('open2');
+    showMsg(MSGS[1]);
+    hint.textContent='one more time…';
+  } else if(taps===3){
+    lidG.classList.remove('open2');
+    lidG.classList.add('open3');         // slides up and fades
+    ringG.classList.add('show');
+    spawnSparks(wrap);
+    hint.textContent='';
+    setTimeout(()=>{ showMsg('Tap the ring… 💍'); },900);
+  }
+}
+
+/* ─── TRANSITION TO LETTER ───────────────────── */
+function goToLetter(){
+  const scene  = document.getElementById('scene');
+  const letter = document.getElementById('letter-scene');
+
+  scene.style.opacity='0';
+  scene.style.transform='scale(.92)';
+
+  setTimeout(()=>{
+    scene.style.display='none';
+    letter.classList.add('show');
+    spawnScenePetals();
+  },750);
+}
+
+function spawnScenePetals(){
+  const g=['🌸','🌺','🌷','💗','✿','💮'];
+  let c=0;
+  const iv=setInterval(()=>{
+    if(c++>40)return clearInterval(iv);
+    const d=document.createElement('div');
+    d.className='scene-petal';
+    d.textContent=g[Math.floor(Math.random()*g.length)];
+    d.style.cssText=`
+      left:${Math.random()*100}%;
+      --fd:${(Math.random()*4+3).toFixed(1)}s;
+      --fdelay:${(Math.random()*3).toFixed(1)}s;
+      --fdrift:${(Math.random()*100-50).toFixed(0)}px;
+      font-size:${(Math.random()*.8+.7).toFixed(2)}rem;
+    `;
+    document.body.appendChild(d);
+    d.addEventListener('animationend',()=>d.remove());
+  },150);
+}
+</script>
+</body>
+</html>
